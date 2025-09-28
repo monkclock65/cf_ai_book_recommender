@@ -9,7 +9,13 @@
  */
 
 export default {
-	async fetch(request, env, ctx) {
-		return new Response('Hello World!');
-	},
-};
+  async fetch(request, env) {
+    const message = [
+      { role: "system", content: "you are a friendly ai assistant"},
+      { role: "user", content: "how many US presidents are there?"}
+    ]
+    const response = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {message})
+
+    return new Response(JSON.stringify(response))
+  }
+}
