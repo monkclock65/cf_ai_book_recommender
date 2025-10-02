@@ -1,21 +1,18 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
 
 export default {
   async fetch(request, env) {
-    const message = [
-      { role: "system", content: "you are a friendly ai assistant"},
-      { role: "user", content: "how many US presidents are there?"}
-    ]
-    const response = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {message})
-
-    return new Response(JSON.stringify(response))
+    const prompt = {
+      messages: [
+      {role: "system", content: "You are a book recomendation system"},
+      {role: "user", content: "give me a book like harry potter limit your resonse to 5 books"},
+      ],
+      max_tokens: 4096
   }
-}
+    const response = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast",prompt)
+
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json'}
+      })
+
+  }    
+    }
