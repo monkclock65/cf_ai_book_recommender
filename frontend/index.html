@@ -38,8 +38,18 @@
                     <button type="submit">Get Recommendations</button>
                 </form>
                 <script>
-                 
-
+                const websocket = new WebSocket(
+                     "wss://c6b4b4da.cf-ai-book-recommender.pages.dev", 
+                );
+               const form = document.getElementById("book-request-form");
+               const input = document.getElementById("user-prompt");
+               form.addEventListener("submit", function(e) {
+                e.preventDefault();
+                if (websocket.readyState === WebSocket.OPEN) {
+                   websocket.send(input.value);
+                   input.value = '';
+                }
+               });
 
 
                 </script>
