@@ -3,25 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>News Sorter</title>
+    <title>Book Recommender</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="header">
         <div class="title">Book Recommender AI</div>
-
     </div>
-    <div class="middle">
-        <div class="AI-output">
-
-        </div>
-        <div class="user-input">
-          <div class="input-form">
-            <form>
-                <input type="text">
-            </form>
-          </div>
-        </div>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Past Recommendations</h2>
+            <div class="past-recommendations">
+                <!-- Past recommendations will be dynamically added here -->
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="recommendations-container">
+                <!-- Book recommendations will be dynamically added here -->
+                <div class="book-recommendation">
+                    <div class="book-header">
+                        <img src="" alt="Book cover" class="book-cover">
+                        <div class="book-info">
+                            <h3 class="book-title">
+                                <a href="#" class="book-link">Book Title</a>
+                            </h3>
+                        </div>
+                    </div>
+                    <p class="book-description">Book description will appear here.</p>
+                </div>
+            </div>
+            <div class="user-input">
+                <form id="book-request-form">
+                    <input type="text" id="user-prompt" placeholder="Ask for a book recommendation...">
+                    <button type="submit">Get Recommendations</button>
+                </form>
+            </div>
+        </main>
     </div>
 </body>
 </html>
