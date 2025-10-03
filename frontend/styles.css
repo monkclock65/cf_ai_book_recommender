@@ -1,0 +1,56 @@
+.header {
+    display:flex;
+    height:100px;
+    background-color:aqua;
+    justify-content:center;
+    align-items:center; 
+}
+
+.title {
+    font-size: 36px;
+    font-weight:bold;
+    color:beige;
+
+}
+
+.body {
+    box-sizing:border-box;
+    height:100vh;
+    width:100vw;
+}
+
+.middle {
+    display:flex;
+    height:100vh;
+    justify-content: center;
+    align-items:center;
+    flex-direction: column;
+}
+
+.AI-output {
+    height:75%;
+    width:100%;
+    color:#faf9f5;
+    border: 2px solid black;
+
+}
+
+
+.user-input {
+ display:flex;
+ flex-direction:row;
+ height:50px;
+ width:100%;
+ justify-content:center;
+ 
+}
+
+form {
+    flex:1;
+    height:20px;
+    border-radius:10px;
+    background-color:gray;
+    margin-left:100px;
+    margin-right:100px;
+    border:2px solid black;
+}
