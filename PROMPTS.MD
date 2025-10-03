@@ -6,3 +6,6 @@ using the index.html and styles.css files  inside the frontend folder, create a 
 
 AI used to: create a basic framework for the
 webpage
+
+#Bugfixing
+why is my website not showing up in the cloudflare pages deployment link. its returning a 404 error

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Recommender</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="header">
         <div class="title">Book Recommender AI</div>
@@ -38,18 +40,27 @@
                     <button type="submit">Get Recommendations</button>
                 </form>
                 <script>
-                const websocket = new WebSocket(
-                     "wss://c6b4b4da.cf-ai-book-recommender.pages.dev", 
-                );
-               const form = document.getElementById("book-request-form");
-               const input = document.getElementById("user-prompt");
-               form.addEventListener("submit", function(e) {
-                e.preventDefault();
-                if (websocket.readyState === WebSocket.OPEN) {
-                   websocket.send(input.value);
-                   input.value = '';
-                }
-               });
+                    const websocket = new WebSocket(
+                        "wss://c6b4b4da.cf-ai-book-recommender.pages.dev",
+                    );
+                    websocket.addEventListener('open', event => {
+                        console.log("websocket connected successfully.");
+                    })
+                    websocket.addEventListener('error', error => {
+                        console.log("websocket failed to connect");
+                    })
+                    const form = document.getElementById("book-request-form");
+                    const input = document.getElementById("user-prompt");
+                    form.addEventListener("submit", function (e) {
+                        e.preventDefault();
+                        if (websocket.readyState === WebSocket.OPEN) {
+                            websocket.send(input.value);
+                            input.value = '';
+                        }
+                        else {
+                            console.log("websocket not open");
+                        }
+                    });
 
 
                 </script>
@@ -57,4 +68,5 @@
         </main>
     </div>
 </body>
+
 </html>
