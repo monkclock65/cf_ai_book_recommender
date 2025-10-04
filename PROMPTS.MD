@@ -9,3 +9,9 @@ webpage
 
 #Bugfixing
 why is my website not showing up in the cloudflare pages deployment link. its returning a 404 error
+
+Firefox can’t establish a connection to the server at wss://c6b4b4da.cf-ai-book-recommender.pages.dev/.
+
+connect my worker.dev and my pages.dev so they work together
+
+fix my websocket code

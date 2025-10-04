@@ -1,0 +1,10 @@
+name = "cf-ai-book-recommender"
+main = "src/index.js"
+compatibility_date = "2025-09-27"
+
+[assets]
+binding = "ASSETS"
+directory = "./frontend"
+
+[ai]
+binding = "AI"
