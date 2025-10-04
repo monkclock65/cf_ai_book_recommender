@@ -40,9 +40,8 @@
                     <button type="submit">Get Recommendations</button>
                 </form>
                 <script>
-                    const websocket = new WebSocket(
-                        "wss://c6b4b4da.cf-ai-book-recommender.pages.dev",
-                    );
+                        const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+                        const websocket = new WebSocket(wsUrl);
                     websocket.addEventListener('open', event => {
                         console.log("websocket connected successfully.");
                     })

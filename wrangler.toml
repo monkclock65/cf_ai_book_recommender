@@ -1,0 +1,13 @@
+name = "cf-ai-book-recommender"
+compatibility_date = "2023-01-01"
+
+[site]
+bucket = "./frontend"
+
+[build]
+command = ""
+upload.format = "directory"
+upload.main = "./frontend"
+
+[ai]
+binding = "AI"
