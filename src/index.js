@@ -1,6 +1,19 @@
 
 export default {
   async fetch(request, env) {
+     const url = new URL(request.url);
+
+    // --- WebSocket endpoint ---
+    if (url.pathname === "/ws") {
+      if (request.headers.get("Upgrade") !== "websocket") {
+        return new Response("Expected websocket", { status: 426 });
+      }
+
+      const [client, server] = Object.values(new WebSocketPair());
+      this.handleWebSocket(server, env);
+      return new Response(null, { status: 101, webSocket: client });
+    }
+
     const prompt = {
       messages: [
       {role: "system", content: "You are a book recomendation system"},
@@ -13,22 +26,10 @@ export default {
     return new Response(JSON.stringify(response), {
       headers: { 'Content-Type': 'application/json'}
       })
-    },
-   async handleRequest(request) {
-        const upgradeHeader = request.headers.get('Upgrade');
-        if (!upgradeHeader || upgradeHeader !== 'websocket') {
-        return new Response('Expected Upgrade: websocket', { status: 426 });
-          }
-                
-        const webSocketPair = new webSocketPair();
-        const client = webSocketPair[0];
-        const server = webSocketPair[1];
+          
+    },   
 
-        return new Response(null, {
-            status: 101,
-            websocket: client,
-             });
-        }
+        
 
   
       

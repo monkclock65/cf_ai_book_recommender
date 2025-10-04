@@ -40,7 +40,7 @@
                     <button type="submit">Get Recommendations</button>
                 </form>
                 <script>
-                        const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`;
+                        const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
                         const websocket = new WebSocket(wsUrl);
                     websocket.addEventListener('open', event => {
                         console.log("websocket connected successfully.");
