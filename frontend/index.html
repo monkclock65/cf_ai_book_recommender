@@ -31,7 +31,7 @@
                             </h3>
                         </div>
                     </div>
-                    <p class="book-description">Book description will appear here.</p>
+                    <p class="book-description"></p>
                 </div>
             </div>
             <div class="user-input">
@@ -48,18 +48,30 @@
                     websocket.addEventListener('error', error => {
                         console.log("websocket failed to connect");
                     })
-                    const form = document.getElementById("book-request-form");
+                    const form = document.getElementById("book-request-form")
                     const input = document.getElementById("user-prompt");
                     form.addEventListener("submit", function (e) {
                         e.preventDefault();
                         if (websocket.readyState === WebSocket.OPEN) {
-                            websocket.send(input.value);
-                            input.value = '';
+                            const userInput = {
+                                type: "post",
+                                endpoint: "/api/recommend",
+                                payload: input.value
+                            }
+                            websocket.send(JSON.stringify(userInput));
+                            console.log(input.value);
                         }
                         else {
                             console.log("websocket not open");
                         }
                     });
+        
+                        websocket.addEventListener('message', event => {
+                            const res = JSON.parse(event.data)
+                            const output = document.querySelector('.book-description')
+                            output.innerHTML = res.response;
+                        }) 
+                    
 
 
                 </script>

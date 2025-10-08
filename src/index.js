@@ -1,8 +1,10 @@
+
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // --- WebSocket endpoint ---
+    
     if (url.pathname === "/ws") {
       if (request.headers.get("Upgrade") !== "websocket") {
         return new Response("Expected websocket", { status: 426 });
@@ -18,21 +20,14 @@ export default {
       });
     }
 
-    // --- API endpoint ---
-    if (url.pathname === "/api/recommend" && request.method === "POST") {
-      const body = await request.json();
-      const aiResponse = await getAIRecommendation(body.query, env);
-      return new Response(JSON.stringify({ recommendation: aiResponse }), {
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    
 
-    // --- Otherwise, serve frontend assets ---
+  
     return env.ASSETS.fetch(request);
   },
 };
 
-// --- Shared AI function ---
+
 async function getAIRecommendation(query, env) {
   const prompt = {
     messages: [
@@ -41,16 +36,19 @@ async function getAIRecommendation(query, env) {
     ],
     max_tokens: 1024,
   };
+  console.log(query);
   return await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", prompt);
 }
 
-// --- WebSocket handler ---
+
 function handleWebSocket(ws, env) {
   ws.accept();
   ws.addEventListener("message", async (event) => {
     try {
       const aiResponse = await getAIRecommendation(event.data, env);
+      console.log(aiResponse);
       ws.send(JSON.stringify(aiResponse));
+      console.log("ai response sent");
     } catch (err) {
       ws.send(JSON.stringify({ error: "AI request failed" }));
     }
