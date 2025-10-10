@@ -1,10 +1,11 @@
 import { WorkflowEntrypoint } from "cloudflare:workers";
-
+export {WebSocketServer} from "./worker.js";
 export class BookRecommenderWorkflow extends WorkflowEntrypoint {
-  async run(event,WorkflowStep) {
-    const {query, socketId} = event;
-
-  const aiResponse = await this.step.do("ai-response", async => {
+  async run(event,WorkflowStep,env) {
+  console.log("Workflow started with event:", event);
+  const {query,socketId} = event
+    console.log("Workflow received query:", query, "socketId:", socketId);
+  const aiResponse = await WorkflowStep.run("ai-response", async () => {
     const prompt = {
     messages: [
       { role: "system", content: "You are a book recommendation system." },
@@ -17,12 +18,18 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
 
   });
 
-  await this.step.do("send response to client", async => {
-          const socket = env.WEBSOCKETS.get(socketId);
-      if (socket) {
-          socket.send(JSON.stringify(aiResponse));
-          console.log("ai response sent")
-      }
-  });
+          await WorkflowStep.run("Send response", async () => {
+      const id = env.WEBSOCKET_SERVER.idFromName("foo");
+      const stub = env.WEBSOCKET_SERVER.get(id);
+      await event.stub.fetch("/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          socketId,
+          aiResponse: aiResponse.output_text || aiResponse,
+        }),
+      });
+    });
+  
 }
 }
