@@ -42,6 +42,33 @@
                 <script>
                         const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
                         const websocket = new WebSocket(wsUrl);
+
+                        websocket.addEventListener('message', event => {
+                            try {
+                                const res = JSON.parse(event.data);
+                                console.log("Client received:", res);
+                                const output = document.querySelector('.book-description');
+                                if (res.error) {
+                                    output.innerHTML = `Error: ${res.error}`;
+                                } else if (res.response) {
+                                    output.innerHTML = res.response;
+                                }
+                            } catch (error) {
+                                console.error("Error handling message:", error);
+                            }
+                        });
+
+                        websocket.addEventListener('close', () => {
+                            console.log("WebSocket connection closed");
+                        });
+
+                        document.getElementById('book-request-form').addEventListener('submit', (e) => {
+                            e.preventDefault();
+                            const input = document.getElementById('user-prompt');
+                            const query = input.value;
+                            websocket.send(JSON.stringify({ payload: query }));
+                            input.value = '';
+                        });
                     websocket.addEventListener('open', event => {
                         console.log("websocket connected successfully.");
                     })
