@@ -54,12 +54,10 @@
                         e.preventDefault();
                         if (websocket.readyState === WebSocket.OPEN) {
                             const userInput = {
-                                type: "post",
-                                endpoint: "/api/recommend",
-                                payload: input.value
+                               payload: input.value  
                             }
                             websocket.send(JSON.stringify(userInput));
-                            console.log(input.value);
+                            console.log(userInput.payload);
                         }
                         else {
                             console.log("websocket not open");
