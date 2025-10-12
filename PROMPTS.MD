@@ -15,3 +15,11 @@ Firefox can’t establish a connection to the server at wss://c6b4b4da.cf-ai-boo
 connect my worker.dev and my pages.dev so they work together
 
 fix my websocket code
+
+how to format a json string as normal text with no escape characters in javascript
+
+debug all of my code and tell me why it isn't working correctly
+
+the workflow function call isn't working
+
+https://developers.cloudflare.com/workflows/ try looking at that and fix the workflow call here's my logs: 

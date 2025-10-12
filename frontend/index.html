@@ -92,10 +92,12 @@
                     });
         
                         websocket.addEventListener('message', event => {
-                            const res = JSON.parse(event.data)
+                            
+                            const res = event.data;
+                        
                             console.log("Client received:", res);
-                            const output = document.querySelector('.book-description')
-                            output.innerHTML = res.response;
+                            const output = document.querySelector('.book-description');
+                            output.innerHTML = res;
                         }) 
                     
 

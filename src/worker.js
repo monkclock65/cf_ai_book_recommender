@@ -36,11 +36,10 @@ export default {
         console.log("WebSocketServer fetch called, URL:", url.pathname);
 
         if (url.pathname === "/send" && request.method === "POST") {
-          const { socketId, aiResponse } = await request.json();
-
+          const { socketId, aiCall } = await request.json();
           for (const [ws, { id }] of this.sessions) {
             if (id === socketId) {
-              ws.send(JSON.stringify({ response: aiResponse }));
+              ws.send(aiCall);
               console.log("AI response sent to client:", id);
             }
           }
@@ -57,19 +56,19 @@ export default {
           const id = crypto.randomUUID();
           this.sessions.set(server, { id });
 
-          server.addEventListener("message", async (event) => {
+      server.addEventListener("message", async (event) => {
             try {
-              const data = JSON.parse(event.data);
-              const query = data.payload;
-              console.log("Received WS message:", data, "from id:", id);
+        const data = JSON.parse(event.data);
+        const query = typeof data === "string" ? data.trim() : (typeof data?.payload === "string" ? data.payload.trim() : "");
+        console.log("Received WS message:", data, "from id:", id);
 
-              // Trigger the Workflow instance with params per Cloudflare Workflows API
-              await this.env.Book_Recommender.create({
-                params: {
-                  query,
-                  socketId: id,
-                },
-              });
+              // Ignore empty payloads to avoid spawning duplicate/blank workflows
+              if (query) {
+                // Trigger the Workflow instance with params per Cloudflare Workflows API
+                await this.env.Book_Recommender.create({
+                  params: { query, socketId: id },
+                });
+              }
             } catch (err) {
               server.send(JSON.stringify({ error: err.message }));
               console.error("WebSocket message error:", err);
