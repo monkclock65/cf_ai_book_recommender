@@ -13,13 +13,14 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
             {
               role: "system",
               content:
-                "You are a book recommendation system. When asked, create a list of 5 books relevant to the user's query. format as a json object with title and author only. number each title and author key ex:title_1 author_1. do not include any additional text or formatting. do not include any prefixes such as 'Here are some book recommendations:'. respond with only the json object."
+                "You are a book recommendation system. When asked, create a list of 5 books relevant to the user's query. make sure the book title is written by the author. rank the books by how much they fit the user's query. the books must be the actual title and not the series name. do not repeat any authors or books from the same series. format as a json object with title and author only. number each title and author key ex:title_1 author_1. do not include any additional text or formatting. do not include any prefixes such as 'Here are some book recommendations:'. respond with only the json object."
             },
             { role: "user", content: query }
           ],
           max_tokens: 768,
         };
-        const aiResponse = await this.env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", prompt);
+        const aiResponse = await this.env.AI.run("@cf/meta/llama-4-scout-17b-16e-instruct", prompt);
+        console.log("AI Response before:", aiResponse);
         return JSON.stringify(aiResponse.response)
       });
       
