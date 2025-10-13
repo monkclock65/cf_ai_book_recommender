@@ -1,4 +1,4 @@
-Agent used:Claude Sonnet 3.5 through Copilot
+Agent used: GPT-5 Copilot
 Prompts: 
 #Creating a page structure: 
 
@@ -22,4 +22,15 @@ debug all of my code and tell me why it isn't working correctly
 
 the workflow function call isn't working
 
-https://developers.cloudflare.com/workflows/ try looking at that and fix the workflow call here's my logs: 
+https://developers.cloudflare.com/workflows/ try looking at that and fix the workflow call here's my logs:
+
+debug and only change the ai part of the code so that it returns correct output don't change anything else
+
+I have an error in my workflow or index.html of the apiCall being returned to the client as a json object when I want it to be a string. according to the logs, the apicall from the ai is correctly returned
+
+read my current code and fix the aiCall not being sent to the client correctly
+
+what is a secure way for me to store the google books api key without exposing it to github
+
+Create a readme.md based on my current codebase that explains the features of my website. 1. ask about a genre, type of book, or similiar book to get recommendations about that book. 2. the website will display 5 books with images of their titles, an ai description relating to the query, and a link to the google books page with the book. Include explanations of the backend architecture and instructions for local deployment. empathis on using workflows and durable objects to create the architecture
+Note: readme edited after ai to fix mistakes and make it more accurate
