@@ -13,29 +13,92 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
             {
               role: "system",
               content:
-                "You are a book recommendation system. When asked, create a list of 5 books relevant to the user's query. make sure the book title is written by the author. rank the books by how much they fit the user's query. the books must be the actual title and not the series name. do not repeat any authors or books from the same series. format as a json object with title and author only. number each title and author key ex:title_1 author_1. do not include any additional text or formatting. do not include any prefixes such as 'Here are some book recommendations:'. respond with only the json object."
+                "You are a book recommendation system. When asked, create a list of 5 books relevant to the user's query. make sure the book title is written by the author. rank the books by how much they fit the user's query. the books must be the actual title and not the series name. do not include things like The Kingkillers Chronicle:The name of the wind. do only the main title: the name of the wind. do not repeat any authors or books from the same series. format as a json object with title and author only do not include any additional text or formatting or ''' marks. put the title and author as objects in an array, with each pair being one object with title and author as keys. call the array bookRecommendations. respond with only the json object."
             },
             { role: "user", content: query }
           ],
-          max_tokens: 768,
+          max_tokens: 1024,
         };
         const aiResponse = await this.env.AI.run("@cf/meta/llama-4-scout-17b-16e-instruct", prompt);
         console.log("AI Response before:", aiResponse);
-        return JSON.stringify(aiResponse.response)
+        return aiResponse.response
       });
-      
-      const apiQuery = await step.do("construct-api-query", async () => {
-        console.log("AI Call Result:", aiCall);
-        const aiCallParsed = JSON.parse(aiCall);
+      const validAI = await step.do("validate-ai-responese", async () => {
+        const prompt = {
+          messages: [
+            {
+              role: "system",
+              content: "You are a search query validator. Given a list of book recommendations in json format, ensure that the titles and authors are correctly formatted and valid. Respond with the corrected json object or the original if no changes are needed. Do not include any additional text or formatting. example of invalid formatting: title with author name included, title with series name included, author name misspelled. example of valid formatting: title with only the book title, author with only the author's name. ensure there are no duplicate authors or titles. ensure the json is properly formatted."
+            },
+            { role: "user", content: JSON.stringify(aiCall) }
+          ],
+          max_tokens: 1024,
+          
+        }
+        const aiResponseValid = await this.env.AI.run("@cf/meta/llama-4-scout-17b-16e-instruct", prompt);
+        console.log("AI Response after validation:", JSON.stringify(aiResponseValid.response));
+        return aiResponseValid.response;
 
-        const title = aiCallParsed.title_1;
-        const author = aiCallParsed.author_1;
-        const title_data = title.toLowerCase().replace(/ /g, '+');
-        const author_data = author.toLowerCase().replace(/ /g, '+');
-        const Query = 'https://www.googleapis.com/books/v1/volumes?q=intitle:' + title_data + '+inauthor:' + author_data + '&key=' + this.env.GBOOKS_API_KEY;
-        console.log("Constructed Google Books API query:", Query);
-        return new Response(Query)
+
+      })
+      const apiQuery = await step.do("construct-api-query", async () => {
+        console.log("AI Call Result:", validAI);
+        const QueryArray = [];
+  ;
+        for (let i = 0; i < validAI.bookRecommendations.length; i++) {
+          const title = validAI.bookRecommendations[i].title;
+          const author = validAI.bookRecommendations[i].author;
+          const title_data = title.toLowerCase();
+          const author_data = author.toLowerCase();
+          const Query = `https://www.googleapis.com/books/v1/volumes?q=intitle:%22${title_data}%22+inauthor:%22${author_data}%22&maxResults=1&printType=books&key=${this.env.GBOOKS_API_KEY}`;
+        console.log("Constructed Google Books API query:", Query)
+        QueryArray.push(Query);
+        }
+        return QueryArray;
       });
+
+     const apiData = await step.do("get-api-query", async () => {
+        const apidataArray = [];
+        for (let i = 0; i < apiQuery.length; i++) {
+        const response = await fetch(apiQuery[i])
+          if (!response.ok) {
+            console.error("Google Books API error:", response.statusText);
+          }
+          const data = await response.text();
+          console.log("Google Books API data:", data);
+          apidataArray.push(JSON.parse(data));
+        }
+        return apidataArray;
+      });
+
+      await step.do("parse-api-response", async () => {
+        const apiDataParsed = apiData
+        const bookRecArray = [];
+        for (let i = 0; i < apiDataParsed.length; i++) {
+        if (apiDataParsed[i].totalItems > 0) {
+          const book = apiDataParsed[i].items[0].volumeInfo;
+          const title = book.title;
+          const author = book.authors[0];
+        let imagelink = book.imageLinks?.thumbnail || "";
+          if (imagelink && imagelink.startsWith("http:")) {
+            imagelink = imagelink.replace("http:", "https:");
+          }          
+  const infoLink = book.previewLink || book.canonicalVolumeLink || book.infoLink || "";
+
+          const bookrec = { title, author, imagelink, infoLink };
+          bookRecArray.push(bookrec);
+          
+        }
+      }
+        console.log("Book Recommendations Array:", bookRecArray);
+        
+      })
+      
+        
+
+      
+
+
       /*const apiCall = await step.do("create api call", async () => {
       
         const prompt = {
@@ -59,13 +122,13 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
         // Get the Durable Object instance via this.env
         const id = this.env.WEBSOCKET_SERVER.idFromName("websocket");
         const wsServer = this.env.WEBSOCKET_SERVER.get(id);
-        console.log("Sending response to socketId:", socketId, "aiCall:", aiCall);
+        console.log("Sending response to socketId:", socketId, "validAI:", validAI);
         // Send the response through the WebSocket server
   // Durable Object stub.fetch requires an absolute URL; hostname is ignored
   await wsServer.fetch("https://do/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ socketId, aiCall })
+      body: JSON.stringify({ socketId, validAI })
         });
       });
     } catch (error) {
