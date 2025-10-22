@@ -36,11 +36,11 @@ export default {
         console.log("WebSocketServer fetch called, URL:", url.pathname);
 
         if (url.pathname === "/send" && request.method === "POST") {
-          const { socketId, aiCall } = await request.json();
+          const { socketId, apiOutput, aiDescription, error } = await request.json();
           for (const [ws, { id }] of this.sessions) {
             if (id === socketId) {
-              ws.send(aiCall);
-              console.log("AI response sent to client:", id);
+              ws.send(JSON.stringify({ apiOutput, aiDescription, ...(error ? { error } : {}) }));
+              console.log("AI response sent to client:", id, apiOutput, aiDescription, error);
             }
           }
 

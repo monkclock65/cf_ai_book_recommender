@@ -7,7 +7,7 @@ using the index.html and styles.css files  inside the frontend folder, create a 
 AI used to: create a basic framework for the
 webpage
 
-#Bugfixing
+# Bugfixing worker
 why is my website not showing up in the cloudflare pages deployment link. its returning a 404 error
 
 Firefox can’t establish a connection to the server at wss://c6b4b4da.cf-ai-book-recommender.pages.dev/.
@@ -19,6 +19,8 @@ fix my websocket code
 how to format a json string as normal text with no escape characters in javascript
 
 debug all of my code and tell me why it isn't working correctly
+
+# debugging workflow file
 
 the workflow function call isn't working
 
@@ -34,3 +36,14 @@ what is a secure way for me to store the google books api key without exposing i
 
 Create a readme.md based on my current codebase that explains the features of my website. 1. ask about a genre, type of book, or similiar book to get recommendations about that book. 2. the website will display 5 books with images of their titles, an ai description relating to the query, and a link to the google books page with the book. Include explanations of the backend architecture and instructions for local deployment. empathis on using workflows and durable objects to create the architecture
 Note: readme edited after ai to fix mistakes and make it more accurate
+
+# adding UI to the website and editing query
+what do I do if the ai returns books that don't exist to the google api 
+
+change it to skip unmatched books but add a message to the client that says: Error: ai tried to recommend a book that doesn't exist 
+
+that can't be the whole problem because the if statement where it reads authors is skipped to else statement
+
+change the api query to max 10 items and loop until you find a title that matches the query
+
+can you change the query logic so it prioritizes an image, then the title, and falls back to normal if it can't find one or the other
