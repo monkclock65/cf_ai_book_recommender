@@ -31,6 +31,7 @@ export default {
     }
 
     async fetch(request) {
+      console.log("Env keys in DO:", Object.keys(this.env));
       try {
         const url = new URL(request.url);
         console.log("WebSocketServer fetch called, URL:", url.pathname);
