@@ -41,6 +41,14 @@
                     <button type="submit">Get Recommendations</button>
                 </form>
                 <script>
+                        // Cache a stable base card template at load time
+                        (function cacheBaseTemplate() {
+                            const initContainer = document.querySelector('.recommendations-container');
+                            const initTemplate = initContainer?.querySelector('.book-recommendation');
+                            if (initTemplate) {
+                                window.__bookCardBase = initTemplate.cloneNode(true);
+                            }
+                        })();
                         const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
                         const websocket = new WebSocket(wsUrl);
 
@@ -66,11 +74,9 @@
                             }
 
                             const container = document.querySelector('.recommendations-container');
-                            const template = container.querySelector('.book-recommendation');
-                            if (!template) return;
-
-                            // Clear existing cards and re-render from the template
-                            const base = template.cloneNode(true);
+                            if (!container || !window.__bookCardBase) return;
+                            // Clear existing cards and re-render from the cached base template
+                            const base = window.__bookCardBase.cloneNode(true);
                             container.innerHTML = '';
 
                             for (let i = 0; i < recs.length; i++) {
@@ -157,12 +163,27 @@
                             console.log("WebSocket connection closed");
                         });
 
-                        document.getElementById('book-request-form').addEventListener('submit', (e) => {
+                                                document.getElementById('book-request-form').addEventListener('submit', (e) => {
                             e.preventDefault();
                             const input = document.getElementById('user-prompt');
                             const query = input.value;
                             websocket.send(JSON.stringify({ payload: query }));
                             input.value = '';
+                           // Replace current cards with a simple loading message
+                             const container = document.querySelector('.recommendations-container');
+                                if (container) {
+                                    container.innerHTML = '';
+                                    const loadingCard = document.createElement('div');
+                                    loadingCard.className = 'book-recommendation';
+                                    loadingCard.innerHTML = `
+                                    <div class="book-header">
+                                        <div class="book-info">
+                                            <p class="loading"><span class="spinner" aria-hidden="true"></span><span class="loading-text">Sending Query to AI...</span></p>
+                                        </div>
+                                    </div>
+                                    `;
+                                                                container.appendChild(loadingCard);
+                                                        }
                         });
                     websocket.addEventListener('open', event => {
                         console.log("websocket connected successfully.");
