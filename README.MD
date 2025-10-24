@@ -8,12 +8,15 @@ A real-time book recommendation website on Cloudflare Workers. Ask for a genre, 
 - Type a prompt like “hard sci‑fi,” “cozy mystery,” or “books like Mistborn by Brandon Sanderson.”
 - The app uses Workers AI to interpret your request and generate tailored recommendations.
 
-2) Displays five books with rich details
-- Shows five recommended books with:
+2) Displays between one to five books with rich details
+- Shows recommended books with:
 	- Title and Author
 	- Book cover image (via Google Books)
 	- A short AI description related to your query
 	- A link to the Google Books page for the title
+# Deployment link
+
+Use this link to use the recommender: https://cf-ai-book-recommender.zackinceok17.workers.dev/
 
 ## How it works (high level)
 
