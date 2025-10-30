@@ -50,7 +50,8 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
           const author = validAI.bookRecommendations[i].author;
           const title_data = title.toLowerCase();
           const author_data = author.toLowerCase();
-          const Query = `https://www.googleapis.com/books/v1/volumes?q=intitle:%22${title_data}%22+&maxResults=10&printType=books&key=${this.env.GBOOKS_API_KEY}`;
+          const encodedTitle = encodeURIComponent(title);
+          const Query = `https://www.googleapis.com/books/v1/volumes?q=intitle:%22${encodedTitle}%22+&maxResults=10&printType=books&key=${this.env.GBOOKS_API_KEY}`;
         console.log("Constructed Google Books API query:", Query)
         QueryArray.push(Query);
         }
@@ -81,15 +82,17 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
         if (apiDataParsed[i].totalItems > 0) {
           const items = Array.isArray(apiDataParsed[i].items) ? apiDataParsed[i].items : [];
           const targetTitle = (validAI?.bookRecommendations?.[i]?.title || "").toLowerCase().trim();
-
+          const targetAuthor = (validAI?.bookRecommendations?.[i]?.author || "").toLowerCase().trim();
+          //check to see if book matches query
           const hasImage = (it) => !!(it?.volumeInfo?.imageLinks?.thumbnail || it?.volumeInfo?.imageLinks?.smallThumbnail);
           const normTitle = (it) => (it?.volumeInfo?.title || "").toLowerCase().trim();
-
+          const hasAuthor = (it) => (it?.volumeInfo?.authors || "")
           const exactMatches = items.filter(it => normTitle(it) === targetTitle);
+          const authorsOf = it => Array.isArray(it?.volumeInfo?.authors) ? it.volumeInfo.authors.map(a => (a || "").toLowerCase().trim()) : [];
+          const authorMatches = targetAuthor ? items.filter(it => authorsOf(it).includes(targetAuthor)) : [];
           let picked = exactMatches.find(hasImage)
                     || exactMatches[0]
-                    || items.find(hasImage)
-                    || items[0]
+                    || authorMatches[0]
                     || null;
 
           if (!picked) {
@@ -136,11 +139,11 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
             {
               role: "system",
               content:
-                "you are a book description generator. given a user query and  a list of book recommendations, generate a very brief 1 to 2 sentence description for each book related to the query, formatted as JSON objects in an array with the name descarray:. do  not add any additional text or formatting. key/values: title: BOOK_TITLE desc: BOOK_DESCRIPTION"
+                "you are a book description generator. given a user query and  a list of book recommendations, generate a very brief 1 to 3 sentence description for each book. make sure it is related to the query, while keeping the focus on the description. if the query is nonsensical, ignore it and write the description, but if the nonsensical query is tangentially related, include it but keep the focus on the description. formatted as JSON objects in an array with the name descarray:. do  not add any additional text or formatting. key/values: title: BOOK_TITLE desc: BOOK_DESCRIPTION"
             },
             {
               role: "user",
-              content: `${query} ${JSON.stringify(validAI)}`
+              content: `this is the query:${query} this is the book recommendations:${JSON.stringify(validAI)}`
             }
           ],
           max_tokens: 1024,
@@ -160,7 +163,7 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
   await wsServer.fetch("https://do/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ socketId, apiOutput, aiDescription, ...(hadUnmatched ? { error: "Error: ai tried to recommend a book that doesn't exist" } : {}) })
+  body: JSON.stringify({ socketId, query, apiOutput, aiDescription, ...(hadUnmatched ? { error: "Error: ai tried to recommend a book that doesn't exist" } : {}) })
         });
       });
     } catch (error) {

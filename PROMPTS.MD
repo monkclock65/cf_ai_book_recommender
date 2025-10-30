@@ -47,3 +47,7 @@ that can't be the whole problem because the if statement where it reads authors 
 change the api query to max 10 items and loop until you find a title that matches the query
 
 can you change the query logic so it prioritizes an image, then the title, and falls back to normal if it can't find one or the other
+
+In index.html, in the submit button event listener, add  a loading animation that replaces the current book card or cards with a message like the one I put
+
+you do not need to change all of that just change the html to add a spinner in the submit event listener. I kept the css changes. do not add a bunch of unneccessary whitespaces. do not delete all of my code and then copy paste it for no reason

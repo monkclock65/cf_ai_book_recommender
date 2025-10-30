@@ -10,7 +10,7 @@
 
 <body>
     <div class="header">
-        <div class="title">Book Recommender AI</div>
+        <div class="title">AI Book Recommender</div>
     </div>
     <div class="container">
         <aside class="sidebar">
@@ -52,14 +52,9 @@
                         const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
                         const websocket = new WebSocket(wsUrl);
 
-                        websocket.addEventListener('message', event => {
-                            console.log("WS raw:", event.data);
-                            let msg;
-                            try { msg = JSON.parse(event.data); } catch { return; }
-
-                            const recs = Array.isArray(msg.apiOutput) ? msg.apiOutput : [];
-                            // aiDescription can be a stringified array, an array, or an object with descarray
-                            let descObj = msg.aiDescription;
+                        function renderFromPayload(payload) {
+                            const recs = Array.isArray(payload.apiOutput) ? payload.apiOutput : [];
+                            let descObj = payload.aiDescription;
                             if (typeof descObj === 'string') {
                                 try { descObj = JSON.parse(descObj); } catch (e) {
                                     console.warn('[desc] failed to parse aiDescription string:', e, descObj);
@@ -70,12 +65,11 @@
                                 ? descObj
                                 : (descObj && Array.isArray(descObj.descarray)) ? descObj.descarray : [];
                             if (!descs.length) {
-                                console.warn('[desc] no descriptions found. aiDescription parsed type:', Array.isArray(descObj) ? 'array' : typeof descObj, 'raw:', msg.aiDescription);
+                                console.warn('[desc] no descriptions found. aiDescription parsed type:', Array.isArray(descObj) ? 'array' : typeof descObj, 'raw:', payload.aiDescription);
                             }
 
                             const container = document.querySelector('.recommendations-container');
                             if (!container || !window.__bookCardBase) return;
-                            // Clear existing cards and re-render from the cached base template
                             const base = window.__bookCardBase.cloneNode(true);
                             container.innerHTML = '';
 
@@ -90,74 +84,64 @@
 
                                 if (linkEl) {
                                     linkEl.textContent = b.title || 'Untitled';
-                                    if (b.infoLink) {
-                                        linkEl.href = b.infoLink;
-                                    } else {
-                                        linkEl.removeAttribute('href');
-                                    }
+                                    if (b.infoLink) { linkEl.href = b.infoLink; } else { linkEl.removeAttribute('href'); }
                                 }
-
                                 if (infoLinkEl) {
                                     if (b.infoLink) {
                                         infoLinkEl.textContent = 'google books page: ';
                                         const a = document.createElement('a');
-                                        a.href = b.infoLink;
-                                        a.textContent = 'link';
-                                        a.target = '_blank';
-                                        a.rel = 'noopener noreferrer';
+                                        a.href = b.infoLink; a.textContent = 'link'; a.target = '_blank'; a.rel = 'noopener noreferrer';
                                         infoLinkEl.appendChild(a);
-                                    } else {
-                                        infoLinkEl.textContent = '';
-                                    }
+                                    } else { infoLinkEl.textContent = ''; }
                                 }
-                                
                                 if (coverEl) {
-                                    if (b.imagelink) {
-                                        coverEl.src = b.imagelink;
-                                        coverEl.alt = `${b.title || 'Book'} cover`;
-                                    } else {
-                                        coverEl.removeAttribute('src');
-                                        coverEl.alt = 'image not available';
-                                    }
+                                    if (b.imagelink) { coverEl.src = b.imagelink; coverEl.alt = `${b.title || 'Book'} cover`; }
+                                    else { coverEl.removeAttribute('src'); coverEl.alt = 'image not available'; }
                                 }
-
                                 if (descriptionEl) {
                                     const d = descs[i]?.desc;
                                     descriptionEl.textContent = (typeof d === 'string' && d.trim()) ? d : (b.author ? `by ${b.author}` : '');
                                 }
-
                                 container.appendChild(card);
                             }
 
-                            // If the server sent an error, show it as a card in the list
-                            if (msg.error) {
+                            if (payload.error) {
                                 const errCard = base.cloneNode(true);
                                 const linkEl = errCard.querySelector('.book-link');
                                 const titleEl = errCard.querySelector('.book-title');
                                 const coverEl = errCard.querySelector('.book-cover');
                                 const descriptionEl = errCard.querySelector('.book-description');
                                 const infoLinkEl = errCard.querySelector('.book-infolink');
-
-                                if (coverEl) {
-                                    coverEl.removeAttribute('src');
-                                    coverEl.alt = 'no cover';
-                                }
-                                if (linkEl) {
-                                    linkEl.textContent = 'Error';
-                                    linkEl.removeAttribute('href');
-                                } else if (titleEl) {
-                                    titleEl.textContent = 'Error';
-                                }
-                                if (descriptionEl) {
-                                    descriptionEl.textContent = msg.error;
-                                }
-                                if (infoLinkEl) {
-                                    infoLinkEl.textContent = '';
-                                }
-
+                                if (coverEl) { coverEl.removeAttribute('src'); coverEl.alt = 'no cover'; }
+                                if (linkEl) { linkEl.textContent = 'Error'; linkEl.removeAttribute('href'); }
+                                else if (titleEl) { titleEl.textContent = 'Error'; }
+                                if (descriptionEl) { descriptionEl.textContent = payload.error; }
+                                if (infoLinkEl) { infoLinkEl.textContent = ''; }
                                 container.appendChild(errCard);
                             }
+                        }
+                          let lastQuery = ""
+                        websocket.addEventListener('message', event => {
+                            console.log("WS raw:", event.data);
+                            let msg;
+                            try { msg = JSON.parse(event.data); } catch { return; }
+                            const history = Array.isArray(msg.history) ? msg.history : [];
+                            const historyCard = document.querySelector('.past-recommendations');
+                            if (historyCard) {
+                                historyCard.innerHTML = '';
+                                for (let i = 0; i < history.length; i++) {
+                                    const btn = document.createElement('button');
+                                    btn.textContent = history[i]?.query || `Recommendation ${i + 1}`;
+                                    btn.addEventListener('click', () => renderFromPayload(history[i]));
+                                    historyCard.appendChild(btn);
+                                }
+
+                            }
+
+
+                            renderFromPayload(msg);
                         });
+                        
 
                         websocket.addEventListener('close', () => {
                             console.log("WebSocket connection closed");
@@ -167,6 +151,7 @@
                             e.preventDefault();
                             const input = document.getElementById('user-prompt');
                             const query = input.value;
+                            lastQuery = query 
                             websocket.send(JSON.stringify({ payload: query }));
                             input.value = '';
                            // Replace current cards with a simple loading message

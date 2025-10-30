@@ -37,11 +37,17 @@ export default {
         console.log("WebSocketServer fetch called, URL:", url.pathname);
 
         if (url.pathname === "/send" && request.method === "POST") {
-          const { socketId, apiOutput, aiDescription, error } = await request.json();
+          const { socketId, query, apiOutput, aiDescription, error } = await request.json();
           for (const [ws, { id }] of this.sessions) {
             if (id === socketId) {
-              ws.send(JSON.stringify({ apiOutput, aiDescription, ...(error ? { error } : {}) }));
-              console.log("AI response sent to client:", id, apiOutput, aiDescription, error);
+              const key = `recs:${socketId}`;
+              const historyArray = (await this.state.storage.get(key)) || [];
+              historyArray.push({ ts: Date.now(), query, apiOutput, aiDescription, ...(error ? { error } : {}) });
+              const capped = historyArray.slice(-20);
+              await this.state.storage.put(key, capped);
+              const latest = capped[capped.length - 1];
+              ws.send(JSON.stringify({ query, apiOutput, aiDescription, historyItem: latest, history: capped, ...(error ? { error } : {}) }));
+              console.log("AI response sent to client:", id, { latest });
             }
           }
 
