@@ -41,18 +41,22 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
 
 
       })
+      // Normalize validated AI output to a safe object/array
+      let __aiNorm;
+      try { __aiNorm = typeof validAI === "string" ? JSON.parse(validAI) : validAI; } catch { __aiNorm = { bookRecommendations: [] }; }
+      const recs = Array.isArray(__aiNorm?.bookRecommendations) ? __aiNorm.bookRecommendations : [];
+
       const apiQuery = await step.do("construct-api-query", async () => {
-        console.log("AI Call Result:", validAI);
+        console.log("AI Call Result:", __aiNorm);
         const QueryArray = [];
-  ;
-        for (let i = 0; i < validAI.bookRecommendations.length; i++) {
-          const title = validAI.bookRecommendations[i].title;
-          const author = validAI.bookRecommendations[i].author;
+        for (let i = 0; i < recs.length; i++) {
+          const title = recs[i].title;
+          const author = recs[i].author;
           const title_data = title.toLowerCase();
           const author_data = author.toLowerCase();
           const encodedTitle = encodeURIComponent(title);
           const Query = `https://www.googleapis.com/books/v1/volumes?q=intitle:%22${encodedTitle}%22+&maxResults=10&printType=books&key=${this.env.GBOOKS_API_KEY}`;
-        console.log("Constructed Google Books API query:", Query)
+        
         QueryArray.push(Query);
         }
         return QueryArray;
@@ -81,8 +85,8 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
         for (let i = 0; i < apiDataParsed.length; i++) {
         if (apiDataParsed[i].totalItems > 0) {
           const items = Array.isArray(apiDataParsed[i].items) ? apiDataParsed[i].items : [];
-          const targetTitle = (validAI?.bookRecommendations?.[i]?.title || "").toLowerCase().trim();
-          const targetAuthor = (validAI?.bookRecommendations?.[i]?.author || "").toLowerCase().trim();
+          const targetTitle = (recs?.[i]?.title || "").toLowerCase().trim();
+          const targetAuthor = (recs?.[i]?.author || "").toLowerCase().trim();
           //check to see if book matches query
           const hasImage = (it) => !!(it?.volumeInfo?.imageLinks?.thumbnail || it?.volumeInfo?.imageLinks?.smallThumbnail);
           const normTitle = (it) => (it?.volumeInfo?.title || "").toLowerCase().trim();
@@ -97,7 +101,7 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
 
           if (!picked) {
             // No usable item despite totalItems > 0; skip but don't crash
-            console.log('no suitable item found in results for:', validAI?.bookRecommendations?.[i]?.title);
+            console.log('no suitable item found in results for:', recs?.[i]?.title);
             continue;
           }
 
@@ -118,7 +122,7 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
           bookRecArray.push(bookrec);
         } else {
           // Truly no results; flag unmatched to inform client
-          const missing = validAI?.bookRecommendations?.[i];
+          const missing = recs?.[i];
           const title = missing?.title || "";
           hadUnmatched = true;
           console.log('no results from Google Books, skipping:', title);
@@ -143,7 +147,7 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
             },
             {
               role: "user",
-              content: `this is the query:${query} this is the book recommendations:${JSON.stringify(validAI)}`
+              content: `this is the query:${query} this is the book recommendations:${JSON.stringify({ bookRecommendations: recs })}`
             }
           ],
           max_tokens: 1024,
