@@ -43,7 +43,19 @@ export class BookRecommenderWorkflow extends WorkflowEntrypoint {
       })
       // Normalize validated AI output to a safe object/array
       let __aiNorm;
-      try { __aiNorm = typeof validAI === "string" ? JSON.parse(validAI) : validAI; } catch { __aiNorm = { bookRecommendations: [] }; }
+      try {
+        if (typeof validAI === "string") {
+          const cleaned = validAI
+            .replace(/```json/gi, "")
+            .replace(/```/g, "")
+            .trim();
+          __aiNorm = JSON.parse(cleaned);
+        } else {
+          __aiNorm = validAI;
+        }
+      } catch {
+        __aiNorm = { bookRecommendations: [] };
+      }
       const recs = Array.isArray(__aiNorm?.bookRecommendations) ? __aiNorm.bookRecommendations : [];
 
       const apiQuery = await step.do("construct-api-query", async () => {
