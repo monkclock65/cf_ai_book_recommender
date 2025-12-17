@@ -2,7 +2,7 @@
 
 A real-time book recommendation website on Cloudflare Workers. Ask for a genre, a type of book, or a book similar to one you like, and get AI-powered recommendations delivered live over WebSockets.
 
-<div style="width:100%;height:0;padding-bottom:56%;position:relative;"><iframe src="https://giphy.com/embed/TCyrYAF1ayj5DG9sPk" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/TCyrYAF1ayj5DG9sPk">via GIPHY</a></p>
+![demo of the book recommender](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTg1bTVzanVlY2NrNmpmdXRhYXc1OG1obXBkMzMxMW92bG85eGg2NiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TCyrYAF1ayj5DG9sPk/giphy.gif)
 
 ## Features
 
